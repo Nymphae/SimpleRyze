@@ -187,7 +187,7 @@ namespace ConsoleApplication6
                 int sliderValue = _Menu.Item("kek.ryze.item.useSeraph").GetValue<Slider>().Value;
                 float healthPercent = Player.Health / Player.MaxHealth * 100;
                 if (healthPercent < sliderValue)
-                    ;
+                    Items.UseItem(3040);
             }
         }
     }
