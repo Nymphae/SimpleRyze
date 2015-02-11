@@ -61,7 +61,7 @@ namespace ConsoleApplication6
             {
                 farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmq", "Use Q to Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("kek.ryze.farm.farme", "use E to farm").SetValue(true));
-                farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmq", "Use W to Farm").SetValue(true));
+                farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmw", "Use W to Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("kek.ryze.farm.manamanagement", "Percentage of mana to waveclear").SetValue(new Slider(100, 1, 100)));
             }
 
@@ -195,7 +195,7 @@ namespace ConsoleApplication6
         {
             float manaPercent = (Player.Mana / Player.MaxMana) * 100;
             int clearMana = _Menu.Item("kek.ryze.farm.manamanagement").GetValue<Slider>().Value;
-            if (_Menu.Item("kek.ryze.farm.farmq").GetValue<bool>() && manaPercent > clearMana)
+            if (_Menu.Item("kek.ryze.farm.farmw").GetValue<bool>() && manaPercent > clearMana)
             {
                 Obj_AI_Base minion = MinionManager.GetMinions(Player.Position, 625).FirstOrDefault();
                 if (minion != null && minion.IsValidTarget())
