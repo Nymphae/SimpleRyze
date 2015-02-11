@@ -57,6 +57,14 @@ namespace ConsoleApplication6
 
             }
 
+            var farmMenu = new Menu("Lane Clear", "kek.ryze.farm");
+            {
+                farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmq", "Use Q to Farm").SetValue(true));
+                farmMenu.AddItem(new MenuItem("kek.ryze.farm.farme", "use E to farm").SetValue(true));
+                farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmq", "Use W to Farm").SetValue(true));
+                farmMenu.AddItem(new MenuItem("kek.ryze.farm.manamanagement", "Percentage of mana to waveclear").SetValue(new Slider(100, 1, 100)));
+            }
+
             var drawMenu = new Menu("Draw Settings", "kek.ryze.draw");
             {
                 drawMenu.AddItem(new MenuItem("kek.ryze.drawQrange", "Q Draw").SetValue(true));
@@ -69,6 +77,7 @@ namespace ConsoleApplication6
                     new MenuItem("kek.ryze.item.useSeraph", "Hp to use Seraphs").SetValue(new Slider(30, 1, 100)));
                 itemMenu.AddItem(new MenuItem("kek.ryze.items.useseraphs", "Use Seraphs Embrace").SetValue(true));
             }
+            _Menu.AddSubMenu(farmMenu);
             _Menu.AddSubMenu(itemMenu);
             _Menu.AddSubMenu(drawMenu);
             _Menu.AddSubMenu(comboMenu);
@@ -91,8 +100,15 @@ namespace ConsoleApplication6
                 Overload();
                 SpellFlux();
                 Seraphs();
-
             }
+
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                   OverloadLaneClear();
+                    SpellFluxLaneClear();
+                    RunePrisonLaneClear();
+                }
+            
         }
 
         private static void Drawing(EventArgs args)
@@ -133,9 +149,11 @@ namespace ConsoleApplication6
 
         private static void Overload()
         {
-            if (!_Menu.Item("kek.ryze.combo.useq").GetValue<bool>())
+           if (!_Menu.Item("kek.ryze.combo.useq").GetValue<bool>())
                 return;
+            
             Obj_AI_Hero target = TargetSelector.GetTarget(625, TargetSelector.DamageType.Magical);
+            
             if (Q.IsReady())
             {
                 if (target.IsValidTarget(E.Range))
@@ -145,8 +163,52 @@ namespace ConsoleApplication6
             }
         }
 
+        private static void OverloadLaneClear()
+        {
+            float manaPercent = (Player.Mana / Player.MaxMana) * 100;
+            int clearMana = _Menu.Item("kek.ryze.farm.manamanagement").GetValue<Slider>().Value;
+            if (_Menu.Item("kek.ryze.farm.farmq").GetValue<bool>() && manaPercent > clearMana)
+            {
+                Obj_AI_Base minion = MinionManager.GetMinions(Player.Position, 625).FirstOrDefault();
+                if (minion != null && minion.IsValidTarget())
+                    Q.CastOnUnit(minion);
+                else if (minion != null && Player.Distance(minion) > 550 && minion.IsValidTarget())
+                    Q.CastOnUnit(minion);
+            }
+        }
+
+        private static void SpellFluxLaneClear()
+        {
+            float manaPercent = (Player.Mana / Player.MaxMana) * 100;
+            int clearMana = _Menu.Item("kek.ryze.farm.manamanagement").GetValue<Slider>().Value;
+            if (_Menu.Item("kek.ryze.farm.farme").GetValue<bool>() && manaPercent > clearMana)
+                {
+                Obj_AI_Base minion = MinionManager.GetMinions(Player.Position, 625).FirstOrDefault();
+                if (minion != null && minion.IsValidTarget())
+                    E.CastOnUnit(minion);
+                else if (minion != null && Player.Distance(minion) > 550 && minion.IsValidTarget())
+                    E.CastOnUnit(minion);
+            }
+        }
+
+        private static void RunePrisonLaneClear()
+        {
+            float manaPercent = (Player.Mana / Player.MaxMana) * 100;
+            int clearMana = _Menu.Item("kek.ryze.farm.manamanagement").GetValue<Slider>().Value;
+            if (_Menu.Item("kek.ryze.farm.farmq").GetValue<bool>() && manaPercent > clearMana)
+            {
+                Obj_AI_Base minion = MinionManager.GetMinions(Player.Position, 625).FirstOrDefault();
+                if (minion != null && minion.IsValidTarget())
+                    W.CastOnUnit(minion);
+                else if (minion != null && Player.Distance(minion) > 550 && minion.IsValidTarget())
+                    W.CastOnUnit(minion);
+            }
+        }
+
         private static void RunePrison()
         {
+            
+
             if (!_Menu.Item("kek.ryze.combo.usew").GetValue<bool>())
                 return;
             Obj_AI_Hero target = TargetSelector.GetTarget(600, TargetSelector.DamageType.Magical);
@@ -160,7 +222,9 @@ namespace ConsoleApplication6
         }
 
         private static void SpellFlux()
-        {
+        { 
+           
+
             if (!_Menu.Item("kek.ryze.combo.usee").GetValue<bool>())
                 return;
             Obj_AI_Hero target = TargetSelector.GetTarget(600, TargetSelector.DamageType.Magical);
@@ -190,8 +254,9 @@ namespace ConsoleApplication6
                     Items.UseItem(3040);
             }
         }
+
     }
 
-}
+    }
 
 
