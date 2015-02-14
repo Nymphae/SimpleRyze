@@ -5,6 +5,7 @@ using LeagueSharp;
 using SharpDX;
 using LeagueSharp.Common;
 using LeagueSharp.Common.Data;
+using Microsoft.Win32.SafeHandles;
 using Color = System.Drawing.Color;
 
 
@@ -62,7 +63,19 @@ namespace ConsoleApplication6
                 farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmq", "Use Q to Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("kek.ryze.farm.farme", "use E to farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("kek.ryze.farm.farmw", "Use W to Farm").SetValue(true));
-                farmMenu.AddItem(new MenuItem("kek.ryze.farm.manamanagement", "Percentage of mana to waveclear").SetValue(new Slider(100, 1, 100)));
+                farmMenu.AddItem(
+                    new MenuItem("kek.ryze.farm.manamanagement", "Percentage of mana to farm with spells").SetValue(
+                        new Slider(100, 1, 100)));
+            }
+
+            var lastHit = new Menu("Last Hit", "kek.ryze.lasthit");
+            {
+                lastHit.AddItem(new MenuItem("kek.ryze.lasthit.lasthitq", "Use Q to Last Hit").SetValue(true));
+                lastHit.AddItem(new MenuItem("kek.ryze.lasthit.lasthite", "use E to Last Hit").SetValue(true));
+                lastHit.AddItem(new MenuItem("kek.ryze.lasthit.lasthitw", "Use W to Last Hit").SetValue(true));
+                lastHit.AddItem(
+                    new MenuItem("kek.ryze.lasthit.manamanagement", "Percentage of mana to Last Hit with spells").SetValue(
+                        new Slider(100, 1, 100)));
             }
 
             var drawMenu = new Menu("Draw Settings", "kek.ryze.draw");
@@ -77,6 +90,7 @@ namespace ConsoleApplication6
                     new MenuItem("kek.ryze.item.useSeraph", "Hp to use Seraphs").SetValue(new Slider(30, 1, 100)));
                 itemMenu.AddItem(new MenuItem("kek.ryze.items.useseraphs", "Use Seraphs Embrace").SetValue(true));
             }
+            _Menu.AddSubMenu(lastHit);
             _Menu.AddSubMenu(farmMenu);
             _Menu.AddSubMenu(itemMenu);
             _Menu.AddSubMenu(drawMenu);
@@ -103,12 +117,18 @@ namespace ConsoleApplication6
             }
 
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-                {
-                   OverloadLaneClear();
-                    SpellFluxLaneClear();
-                    RunePrisonLaneClear();
-                }
-            
+            {
+                OverloadLaneClear();
+                SpellFluxLaneClear();
+                RunePrisonLaneClear();
+            }
+
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            {
+                OverLoadLastHit();
+                SpellFluxLastHit();
+                RunePrisonLastHit();
+            }
         }
 
         private static void Drawing(EventArgs args)
@@ -149,11 +169,11 @@ namespace ConsoleApplication6
 
         private static void Overload()
         {
-           if (!_Menu.Item("kek.ryze.combo.useq").GetValue<bool>())
+            if (!_Menu.Item("kek.ryze.combo.useq").GetValue<bool>())
                 return;
-            
+
             Obj_AI_Hero target = TargetSelector.GetTarget(625, TargetSelector.DamageType.Magical);
-            
+
             if (Q.IsReady())
             {
                 if (target.IsValidTarget(E.Range))
@@ -182,7 +202,7 @@ namespace ConsoleApplication6
             float manaPercent = (Player.Mana / Player.MaxMana) * 100;
             int clearMana = _Menu.Item("kek.ryze.farm.manamanagement").GetValue<Slider>().Value;
             if (_Menu.Item("kek.ryze.farm.farme").GetValue<bool>() && manaPercent > clearMana)
-                {
+            {
                 Obj_AI_Base minion = MinionManager.GetMinions(Player.Position, 625).FirstOrDefault();
                 if (minion != null && minion.IsValidTarget())
                     E.CastOnUnit(minion);
@@ -207,7 +227,7 @@ namespace ConsoleApplication6
 
         private static void RunePrison()
         {
-            
+
 
             if (!_Menu.Item("kek.ryze.combo.usew").GetValue<bool>())
                 return;
@@ -222,8 +242,8 @@ namespace ConsoleApplication6
         }
 
         private static void SpellFlux()
-        { 
-           
+        {
+
 
             if (!_Menu.Item("kek.ryze.combo.usee").GetValue<bool>())
                 return;
@@ -243,7 +263,7 @@ namespace ConsoleApplication6
 
             if (!_Menu.Item("kek.ryze.item.useSeraphs").GetValue<bool>())
 
-            return;
+                return;
 
 
             if (seraphuse)
@@ -255,8 +275,80 @@ namespace ConsoleApplication6
             }
         }
 
-    }
+        private static void OverLoadLastHit()
+        {
+            float manaPercent = (Player.Mana / Player.MaxMana) * 100;
+            int clearMana = _Menu.Item("kek.ryze.lasthit.manamanagement").GetValue<Slider>().Value;
+            var creeps = MinionManager.GetMinions(Player.ServerPosition, Q.Range);
+            if (_Menu.Item("kek.ryze.lasthit.lasthitq").GetValue<bool>() && manaPercent > clearMana)
+            {
+                foreach (var minion in creeps)
+                {
+                    {
 
+                        if (minion.IsValidTarget() &&
+                            HealthPrediction.GetHealthPrediction(minion, (int) (Player.Distance(minion) * 1000 / 1400)) <
+                            Player.GetSpellDamage(minion, SpellSlot.Q))
+                        {
+                            Q.CastOnUnit(minion);
+                            return;
+                        }}
+                    }
+                }
+
+            }
+
+        private static void SpellFluxLastHit()
+        {
+            float manaPercent = (Player.Mana / Player.MaxMana) * 100;
+            int clearMana = _Menu.Item("kek.ryze.lasthit.manamanagement").GetValue<Slider>().Value;
+            var creeps = MinionManager.GetMinions(Player.ServerPosition, Q.Range);
+            if (_Menu.Item("kek.ryze.lasthit.lasthite").GetValue<bool>() && manaPercent > clearMana)
+            {
+                foreach (var minion in creeps)
+                {
+                    {
+
+                        if (minion.IsValidTarget() &&
+                            HealthPrediction.GetHealthPrediction(minion, (int)(Player.Distance(minion) * 1000 / 1400)) <
+                            Player.GetSpellDamage(minion, SpellSlot.E))
+                        {
+                            E.CastOnUnit(minion);
+                            return;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private static void RunePrisonLastHit()
+        {
+            float manaPercent = (Player.Mana / Player.MaxMana) * 100;
+            int clearMana = _Menu.Item("kek.ryze.lasthit.manamanagement").GetValue<Slider>().Value;
+            var creeps = MinionManager.GetMinions(Player.ServerPosition, Q.Range);
+            if (_Menu.Item("kek.ryze.lasthit.lasthitw").GetValue<bool>() && manaPercent > clearMana)
+            {
+                foreach (var minion in creeps)
+                {
+                    {
+
+                        if (minion.IsValidTarget() &&
+                            HealthPrediction.GetHealthPrediction(minion, (int) (Player.Distance(minion) * 1000 / 1400)) <
+                            Player.GetSpellDamage(minion, SpellSlot.W))
+                        {
+                            if (!Q.IsReady())
+                            {
+                                W.CastOnUnit(minion);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        }
     }
 
 
