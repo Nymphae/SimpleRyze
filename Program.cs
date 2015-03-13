@@ -96,7 +96,7 @@ namespace ConsoleApplication6
             _Menu.AddSubMenu(drawMenu);
             _Menu.AddSubMenu(comboMenu);
             _Menu.AddToMainMenu();
-            Game.OnGameUpdate += Game_OnGameUpdate;
+            Game.OnUpdate += Game_OnGameUpdate;
             LeagueSharp.Drawing.OnDraw += Drawing;
             Game.PrintChat("Loading Nymphae's Simple Ryze");
         }
